@@ -1,0 +1,49 @@
+infosys
+How to check port number of service?
+How to clear cache?
+What is cpu steal?
+how to check server down?
+How to add user for other group?
+How many types of process are there and their alphbet symbols?
+How to take backup?
+what is umask?
+debugging mode of script?
+how to find anji pattern contans files where don't know the dir?
+print reverse of anji?
+How to split one laks lines of file in to 3 files?
+
+what is cowsay?
+what is cherry pick?
+inventory files?
+how to disable gather_facts?
+what is ask_pass?
+variables in ansible?
+diff b/w set host key check and ask_pass?
+
+
+How will you connect jenkins? gui or cli
+how do you connect agent for build?
+how do you take jenkins backup?
+how to change the port num of jenkins?
+learn about configure jobs?
+
+what is diff b/w git index and staging?
+what is git rebase?
+what git reverse?
+what is merge and diff b/w merge and pull?
+
+How to configure aws ec2?
+diff b/w s3 standard IA and one zoneIA?
+what is elastic IP?
+what is public and private subnet?
+what is diff of security groups and nacl?
+how do you establish ssh access to ec2 in security group?
+How many types of metrics is there to configure cloud watch?
+expalain about autoscaling?
+what is internet gateway?
+how to attach 100gb ebs to ec2 instance via console?
+IAM? 
+
+
+
+ 

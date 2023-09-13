@@ -1,0 +1,501 @@
+1) How do i run a script or cmd when system restart?
+------------------------------------------
+a) by using cron job
+#crontab -e
+@reboot /opt/script1.sh
+:wq
+in script1 you can add below cmd
+#!/bin/bash
+touch file{1..3}.txt
+in script2 you can write
+#!/bin/bash
+SITE="Tecmint.com"
+DIR=/opt
+echo "$SITE rocks... add us to your bookmarks." > $DIR/file2.txt
+add above also in crontab then reboot, will see o/p  Tecmint.com rocks... add us to your bookmarks. file2.txt
+ 
+b) entry in /etc/rc.d/rc.local
+chmod +x /etc/rc.d/rc.local
+vi /etc/rc.d/rc.local
+/opt/script3.sh #put here and save :wq
+vi /opt/script3.sh
+#!/bin/bash
+DATE=$(date +'%F %H:%M:%S')
+DIR=/opt
+echo "Current date and time: $DATE" > $DIR/file1.txt
+:wq
+
+2) what is /etc/shadow file?
+------------------------------------------------------------
+The /etc/shadow file stores actual password in encrypted format and other passwords related information such as user name, 
+last password change date, password expiration values, etc,.
+The /etc/shadow file contain every user password details as a single line with nine fields as described below, each fields separated by colon :
+The password field comes with following three variants.
+Usable Encrypted Password: This allow us to login to the Linux system since it’s comes with proper password.
+Locked Password: A password field which starts with a exclamation mark means that the password is locked.
+(! and *) Represent Empty Password: This field may be empty, in which case no passwords are required to authenticate as 
+the specified login name. These user will not be able to use a unix password to log in.
+
+ the Nine fields, which is in /etc/shadow file.
+ a) Username: User login name, it be a valid account name, which exist on the system.
+b) Encrypted Password: Encrypted Password hash, which contains three parts like hash_algorithm, hash_salt, and hash_data.
+c) Date of last password change: The date of the last password change, expressed as the number of days since Jan 1, 1970.
+d) Minimum password age: The minimum password age is the number of days the user will have to wait before she will be allowed to change her password again.
+e) Maximum password age: The maximum password age is the number of days after which the user will have to change her password.
+f) Password warning period: The number of days before a password is going to expire (see the maximum password age above) 
+during which the user should be warned.
+g) Password inactivity period: The number of days after a password has expired during which the password should still be accepted.
+ After expiration of the password and this expiration period is elapsed, no login is possible using the current user’s password.
+Account expiration date: The date of expiration of the account, expressed as the number of days since Jan 1, 1970.
+h) Reserved field: Not used or reserved for future use.
+/etc/login.defs
+The /etc/login.defs file provides default configuration information for user account password parameters. It defines, 
+Password ageing related information such as password Min/Max days, password warning age, etc.,
+
+sample fields   #head /etc/shadow
+root:$6$SdcNlQk6d63wnpvc$PkzUON/0Ds7Bi7R8DHQUqKb4h0t8uZDSZhEwsIuoXm4eIUH8.KpoeQzm1E5vcURVJ/V1FdTpNZM.CAiL9pdNg0::0:99999:7:::
+#chage -l vegan
+Last password change					: Mar 21, 2020
+Password expires					: never
+Password inactive					: never
+Account expires						: never
+Minimum number of days between password change		: 0
+Maximum number of days between password change		: 99999
+Number of days of warning before password expires	: 7
+
+
+3) What is the purpose of /sbin/nologin?
+-----------------------------------------------------------------------------------------------------------------------------------
+The /sbin/nologin command politely refuse a login. It displays a message that an account is not available and exits non-zero. 
+This is prefreed method these days to deny login access to account. 
+# usermod -s /sbin/nologin userName
+to enable access 
+#usermod -s /bin/bash userName
+
+4)  About /etc/nologin File ?
+-----------------------------------------------------------------------------------------------------------------------------------
+If the file /etc/nologin exists, login will allow access only to root user. ther users will be shown the contents of this file and 
+their logins will be refused.
+ This is used when you need to deny login access to all users except root account. Just create /etc/nologin file and you are done:
+ #cat > /etc/nologin
+ type your message "no access"
+ 
+5) Lock and unlock user accounts using the following commands?
+-----------------------------------------------------------------------------------------------------------------------------------
+# passwd -l userName
+# passwd -u userName
+------------------------------------------------------------------------------------------------------------------------------------
+6) What nohup cmd will do in linux?
+Nohup is a command used to run a process(job) on a server and have it continue after you have logged out or otherwise lost connection to the server. 
+Nohup is best suited for long job runs. Nohup is present on all the Unix compute servers. To use nohup to run a remote process, 
+first you must connect to a remote server.
+syntax
+nohup COMMAND [ARGS]
+example
+nohup ./bin/kibana &
+
+7) Which command is use to DNS configured properly?
+-------------------------------------------------------------------------------------------------------------------------------------------
+nslookup
+
+8) Which daemons needed to handle samba? (file system is cifs)
+-------------------------------------------------------------------------------------------------------------------------------------------
+smb & nmb 
+
+9) what should be done to enable auto mounting in client side?
+----------------------------------------------------------------------------------------------------------------------------------------
+autofs
+10) configuration file of DNS?
+------------------------------------------------------------------------------------------------------------------------------------------
+/etc/named.conf
+
+11) client to contact a dns server?
+-----------------------------------------------------------------------------------------------------------------------------------------
+DNS1
+
+12) to share files which is in linux?
+--------------------------------------------------------------------------------------------------------------------------------------
+nfs
+13) document root for http server?
+--------------------------------------------------
+/var/www/html
+
+14) A user not able to ssh remote server what is the solution?
+----------------------------------------------------------------------------------------------------
+in aws .pem file should be 400 permission if otehr permission can't do ssh
+cd  Downloads/keys
+/etc/ssh/sshd_config
+ssh port may be running on diff instead of 22
+need to understand which ip is using ipv4 or ipv6
+need to check below
+PermitRootLogin yes (under this)
+DenyUsers tom
+AllowUsers harry
+#publicAuthentication yes (should be commented)
+AuthozedKeyFile .ssh/authorized_keys (should be in correct)
+PasswordAuthentication yes (shoud be yes)
+appart from above should check sshd dir permission
+ls -ll /var/empty/sshd
+drwx--x--x 2 root root 
+
+15) User root has created a file (/tmp/abc) with 700 permission, you want that your anji user should have full access
+to file, how will you do?
+-----------------------------------------------------------------------------------------------------------------------
+setfacl -m u:anji:rwx /tmp/abc
+getfacl to know what permissions on a file-->getfacl /etc/abc.txt
+
+16) how will you change shell for upcoming users?
+----------------------------------------------------------------------------------------------------------------
+vi /etc/login.defs
+vi /etc/default/useradd here you change
+# useradd defaults file
+GROUP=100
+HOME=/home
+INACTIVE=-1
+EXPIRE=
+SHELL=/bin/bash
+SKEL=/etc/skel
+CREATE_MAIL_SPOOL=yes
+
+17)After creating password less ssh access, whenever I try to login to a server it asks me for the password,
+ While I have verified that my public key is placed on a remote server? 
+ ------------------------------------------------------------------------------------------------------------------
+ run #ssh-add
+ Identity added: /root/.ssh/id_rsa (/root/.ssh/id_rsa)
+
+18) How to disable the root account? 
+------------------------------------------------------------------------------------------------------
+to disable usermod -s /sbin/nologin root
+to enable usermod -s /bin/bash root
+
+19) I have a server where httpd service is running, I want that httpd should be running on cpu core no 2 only.(CPUAffinity=2) 
+--------------------------------------------------------------------------------------------------
+run 
+updatedb
+locate httpd.service
+vim /etc/systemd/system/httpd.service
+under service
+CPUAffinity=2 paste & save
+
+20) After reboot, I can see a time difference in /var/log/message and os time?
+-------------------------------------------------------------------------------------------------------
+#hwclock #date (bios time os date should in sysnc)
+
+21)I want to restart a service only if the service is already running. If service is in a stopped state, the command should do nothing.
+------------------------------------------------------------------------------------------------------------------------
+#Systemctl try-restart httpd.service (usefull when doing deployment with out down)
+
+22) What is max filename length allowed in Linux? 
+--------------------------------------------------------------
+255
+23) What is drop cache in Linux and how do you clear it?
+-------------------------------------------------------------------
+to free pagecache #echo 1>/proc/sys/vm/drop_caches
+to free dentries and inodes #echo 2>/proc/sys/vm/drop_caches
+to free pagecache,dentries and inode #echo 3>/proc/sys/vm/drop_caches
+
+how to check cache mem?
+--> free
+--> /proc/meminfo
+-->vmstat
+
+24) system/kernel version
+----------------------------------------------------------------------------
+uname -a
+Linux ansible-management.com 3.10.0-1160.62.1.el7.x86_64 #1 SMP Tue Apr 5 16:57:59 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+uname -v
+~]# uname -r
+3.10.0-1160.62.1.el7.x86_64
+
+25)  How to check for open ports in Linux?
+--------------------------------------------------------------------------------
+#netstat tunlp (tcp udp network listning ports)
+
+26) How to check Linux process information (CPU usage, memory, user information, etc.)?
+---------------------------------------------------------------------------------------------------
+#ps aux | grep ngnix
+#top with top we get more information
+
+27) How to deal with mounts in Linux?
+---------------------------------------------------------------------------------------------
+mount -a 
+/etc/fstab
+
+28) what is the use of egrep?
+----------------------------------------------------------------------------------------------
+is used to find multiple strings in the file.
+Example
+ls | egrep "mp4|avi"
+
+29)if I need to find something in the rolling logs?
+---------------------------------------------------------------------
+tail -f logfilename | grep "searchString"
+
+30)what is sar
+------------------------------------------------------------------
+system activity report
+sar -[options] time_interval num_of_times_to_display
+
+31) What is ulimit?
+----------------------------------------------------------------------
+ulimit is admin access required Linux shell command which is used to see, set, or limit the resource usage of the current user.
+ It is used to return the number of open file descriptors for each process. It is also used to set restrictions on the resources used by a process.
+ examples--
+ ulimit -a /To check the ulimit value use the following command
+ ulimit -u /To display maximum users process or for showing maximum user process limit for the logged-in user.
+ ulimit -f /For showing the maximum file size a user can have
+ ulimit -m /For showing maximum memory size for the current user.
+ ulimit -v /For showing maximum memory size limit.
+ ulimit -Hn / For displaying the Hard limit. Hard limits are a restriction to the maximum value of soft limits
+ ulimit -Sn /For displaying Soft Limit. The soft limits are the limits that are there for processing.
+ 
+32) How to check hidden files and how to create it?
+------------------------------------------------------------------------------------------------------------------------------
+ls -a to get hidden and normal files
+touch .abc.txt to create hidden files
+
+33) How to start process at start up time?
+------------------------------------------------------------------------------------------
+crontab -e
+# m h  dom mon dow   command
+@reboot
+
+34) What command do you use to check attribute of a file?
+---------------------------------------------------------------------------------
+lsattr filename
+to apply attribute on file 
+chattr +i /etc/fstab / i is immutable
+@ip-172-31-17-95 ~]# rm -rf ram
+rm: cannot remove ‘ram’: Operation not permitted
+
+35) How to check if OS is running on Virtual of Physical Machine?
+--------------------------------------------------------------------------------------------
+#dmidecode | grep -i vm
+
+36) What is use of NMAP command?
+-----------------------------------------
+is used to find open ports in remote server
+#nmap -A 8.8.8.8
+
+37) How to remove an INODE from Linux File system?
+-------------------------------------------------------
+#ls -il {file-name}
+Use find command as follows to find and remove a file:
+#find . -inum [inode-number] -exec rm -i {} \;
+$ find . -inum 782263 -exec rm -i {} \;
+
+38) How to check default gateway of server?
+-----------------------------------------------------------------------------------------
+You can find default gateway using ip, route and netstat commands in Linux systems
+@ip-172-31-17-95 ~]# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         172.31.16.1     0.0.0.0         UG    0      0        0 eth0
+169.254.169.254 0.0.0.0         255.255.255.255 UH    0      0        0 eth0
+172.31.16.0     0.0.0.0         255.255.240.0   U     0      0        0 eth0
+
+@ip-172-31-17-95 ~]# ip route show
+default via 172.31.16.1 dev eth0
+169.254.169.254 dev eth0
+172.31.16.0/20 dev eth0 proto kernel scope link src 172.31.17.95
+
+@ip-172-31-17-95 ~]# netstat -rn
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+0.0.0.0         172.31.16.1     0.0.0.0         UG        0 0          0 eth0
+169.254.169.254 0.0.0.0         255.255.255.255 UH        0 0          0 eth0
+172.31.16.0     0.0.0.0         255.255.240.0   U         0 0          0 eth0
+
+39) How to check which RPM has created /etc/passwd file?
+---------------------------------------------------------------------------------------------
+#rpm -q --whatprovides [file name]
+@ip-172-31-17-95 ~]#  rpm -q --whatprovides /etc/passwd
+setup-2.8.71-10.amzn2.0.1.noarch
+@ip-172-31-17-95 ~]#  rpm -q --whatprovides /etc/hosts
+setup-2.8.71-10.amzn2.0.1.noarch
+
+40) What is use of /home/user/.bash_profile?
+---------------------------------------------------------------------------------------------------------------
+The .bash_profile file is a personal initialization file for configuring the user environment. 
+The file is defined in your home directory and can be used for the following:
+--Modifying your working environment by setting custom environment variables and terminal settings
+--Instructing the system to initiate applications
+Apart from having a home directory to create and store files, users need an environment that gives them access to the tools and resources. When a user 
+logs in to a system, the user’s work environment is determined by the initialization files. These initialization files are defined by the user’s 
+startup shell, which can vary depending on the release. The default initialization files in your home directory enable you to customize your working
+ environment.
+
+Below are Various Initialization file for Bash Shell
+
+The /etc/profile file is a systemwide file that the system administrator maintains. This file defines tasks that the shell executes for every user 
+who logs in. The instructions in the file usually set the shell variables, such as PATH, USER, and HOSTNAME.
+The ~/.bash_profile file is a configuration file for configuring user environments. The users can modify the default settings and 
+add any extra configurations in it.
+The ~/.bash_login file contains specific settings that are executed when a user logs in to the system.
+The file is yet another configuration file that is read in the absence of the ~/.bash_profile and ~/.bash_login files.
+The ~/.bash_logout file contains instructions for the logout procedure.
+
+41) How to create alias of a command?
+-----------------------------------------------------------------------------
+alias search=grep
+
+42) What is use of ~/.bashrc?
+-------------------------------------------------------
+The purpose of a . bashrc file is to provide a place where you can set up variables, functions and aliases, define your (PS1) prompt and define 
+other settings that you want to use every time you open a new terminal window.
+It works by being run each time you open up a new terminal, window or pane.
+A super minimal one might have the following:
+
+export CLICOLOR=1
+export LANG="en_US.UTF-8"
+alias cp="cp -i"
+alias ls="ls --color=auto"
+export PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+export EDITOR="vim"
+
+43) What is use of curl?
+------------------------------------------------------------------------------------------------------------
+curl is a command line tool to transfer data to or from a server, using any of the supported protocols
+ (HTTP, FTP, IMAP, POP3, SCP, SFTP, SMTP, TFTP, TELNET, LDAP or FILE). curl is powered by Libcurl. This tool is preferred for automation, 
+since it is designed to work without user interaction.
+
+44) What is use of wget? 
+------------------------------------------------------------------------------------------------------------------------
+Wget is the non-interactive network downloader which is used to download files from the server even when the user has not logged on to the system and
+ it can work in the background without hindering the current process
+45) What is file name to manage dns entires on Linux?
+------------------------------------------------------------------------------------------------------------
+The /etc/hosts is an operating system file that translate hostnames or domain names to IP addresses. 
+
+46) Understanding Name Service Switch in Linux?
+---------------------------------------------------------------------------------------------------------------------
+Before moving any further, you should understand a few things about another important file that is /etc/nsswitch.conf. 
+It provides Name Service Switch functionality which controls the order in which services are queried for name service lookups.
+
+The configuration is based on order; if files is before dns it means the system will query the /etc/hosts file 
+before checking DNS for name service requests. But if DNS is before files then the domain lookup process will consult 
+DNS first before any other appropriate services or files.
+In this scenario, we want to query the “files” service. To check the order, type.
+$ cat /etc/nsswitch.conf
+or
+$ grep hosts /etc/nsswitch.conf
+
+entries in /etc/hosts
+192.168.56.1   ubuntu.tecmint.lan
+192.168.56.10  centos.tecmint.lan
+
+47) What is use of W command?
+----------------------------------------------------------------------------------------------------------
+w is a command-line utility that displays information about currently logged in users and what each user is doing. 
+It also gives information about how long 
+the system has been running, the current time, and the system load average.
+@ip-172-31-17-95 ~]# w
+ 14:36:48 up 1 day,  1:32,  1 user,  load average: 0.00, 0.00, 0.00
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+ec2-user pts/0    122.171.11.166   12:50    0.00s  0.11s  0.02s sshd: ec2-user [priv]
+
+48) How to kill all process of any user?
+----------------------------------------------------------------------------------------------------------------------------
+Use pkill -U UID or pkill -u UID or username instead of UID. Sometimes skill -u USERNAME may work, another tool is killall -u USERNAME.
+
+Skill was a linux-specific and is now outdated, and pkill is more portable (Linux, Solaris, BSD).
+
+49) /etc/sysctl.conf
+------------------------------------
+ As the /etc/sysctl.conf file is used to override default kernel
+       parameter values, only a small number of parameters is predefined
+       in the file.  Use /sbin/sysctl -a or follow sysctl(8) to list all
+       possible parameters. The description of individual parameters can
+       be found in the kernel documentation.
+	   
+50) Diff b/w ext2/ext3/ext4/xfs file system?
+http://shabbathster.blogspot.com/2014/07/linux-file-systems-ext2-vs-ext3-vs-ext4.html
+51) booting procedure?
+https://www.thegeekstuff.com/2011/02/linux-boot-process/
+ BIOS-->MBR--> GRUB-->Kernel-->	Init--> Runlevel programs
+
+52) what is proxy and reverse proxy servers?
+Proxy server:
+A reverse proxy is a server that sits in front of web servers and forwards client (e.g. web browser) requests to those web servers. 
+Reverse proxies are typically implemented to help increase security, performance, and reliability.In order to better understand how a reverse proxy 
+works and the benefits it can provide, let’s first define what a proxy server is.
+
+Reverse proxy:
+A forward proxy, often called a proxy, proxy server, or web proxy, is a server that sits in front of a group of client machines. 
+When those computers make requests to sites and services on the Internet,the proxy server intercepts those requests and 
+then communicates with web servers on behalf of those clients, like a middleman.
+
+tcpdump?
+tcpdump is a command-line utility that you can use to capture and inspect network traffic going to and from your system.
+ It is the most commonly used tool among network administrators for troubleshooting network issues and security testing.
+
+Despite its name, with tcpdump, you can also capture non-TCP traffic such as UDP, ARP, or ICMP. The captured packets can be written to a file 
+or standard output. One of the most powerful features of the tcpdump command is its ability to use filters and capture only the data you wish to analyze.
+
+In this article, we will cover the basics of how to use the tcpdump command in Linux.
+https://linuxize.com/post/tcpdump-command-in-linux/
+curl (update,post,get,read)?
+this works on API 
+
+52) Screen in linux?
+Screen or GNU Screen is a terminal multiplexer. In other words, it means that you can start a screen session and then open any number of windows
+(virtual terminals) inside that session. Processes running in Screen will continue to run when their window is not visible even if you get 
+ disconnected.
+ yum install screen -y
+ To start a screen session, simply type screen in your console
+ #screen
+ Starting Named Session
+ #screen -S session_name
+ When you start a new screen session, it creates a single window with a shell in it.You can have multiple windows inside a Screen session.
+To find the session ID list the current running screen sessions with:
+#screen -ls
+There are screens on:
+        8995.pts-2.ip-172-31-15-35      (Attached)
+        8675.pts-0.ip-172-31-15-35      (Attached)
+2 Sockets in /var/run/screen/S-ec2-user.
+
+If you want to restore screen 10835.pts-0, then type the following command:
+screen -r 8675.pts-0.ip-172-31-15-35 
+-------------------------------------------------------------------
+
+ to display a word and 2 lines after the word:
+#grep –nA2 wheel /etc/group
+To display a word and 2 lines before the word:
+#grep -nB2 wheel /etc/group
+To display the things except the given word:
+#grep –v kernel ktfile
+To display the searched word in color
+#grep --color root /etc/passwd
+To remove the duplicate entries from the output
+#sort –u ktfile
+To sort the file according to numbers
+#sort –d ktfile or #sort –h ktfile
+It is used to sort the output in numeric or alphabetic order
+#sort filename
+cut command:
+The cut command is used to pick the given expression (in columns) and display the output.
+# cut -d -f filename (where d stands for delimiter ex. : , “ “ etc and f stands for field)
+# cut -d: -f1 /etc/passwd
+
+sed command:
+sed stands for stream editor, which is used to search a word in the file and replace it with the word required to be in the output
+Note: it will only modify the output, but there will be no change in the original file.
+#sed ‘s/searchfor/replacewith/g’ filename
+Copying contents of two files in a new file
+#cat file1 file2 > file3
+#find / -name Kernel Tech
+#find / -inum 5934
+Finding the files, whose owner is a user called “ktuser”
+#find / -user ktuser
+Finding the files whose group is “ktgroup”
+#find / -group ktgroup
+
+LVM (Logical volume manager)
+======================================================
+
+
+
+
+
+ 
+

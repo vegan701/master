@@ -1,0 +1,447 @@
+ansible all -m ping                   	 #Testing Connectivity to Nodes
+ansible all -m ping -u sammy		  	 #Connecting as a Different User
+ansible-playbook myplaybook.yml -u sammy
+
+ansible all -m ping --private-key=~/.ssh/custom_id  			#Using a Custom SSH Key
+ansible-playbook myplaybook.yml --private-key=~/.ssh/custom_id
+
+ansible all -m ping --ask-passansibl
+ansible-playbook myplaybook.yml --ask-pass     # Using Password-Based Authentication
+
+ansible all -m ping --ask-become-pass
+ansible-playbook myplaybook.yml --ask-become-pass  #Providing the sudo Password
+
+ansible all -m ping -i my_custom_inventory				#Using a Custom Inventory File
+ansible-playbook myplaybook.yml -i my_custom_inventory
+
+ansible all -m ping -i digital_ocean.py           #Using a Dynamic Inventory File
+
+##########Running ad-hoc Commands###############
+
+ansible all -a "uname -a"             #This will execute uname -a on all the nodes in your inventory:
+ansible server1 -m apt -a "name=vim"  #would install the package vim on server1
+
+ansible-playbook myplaybook.yml
+ansible-playbook -l server1 myplaybook.yml    #Running Playbooks
+
+ansible-playbook myplaybook.yml --list-tasks
+ansible-playbook myplaybook.yml --list-hosts  #Getting Information about a Play
+ansible-playbook myplaybook.yml --list-tags
+
+
+ansible-playbook myplaybook.yml --start-at-task="Set Up Nginx"
+ansible-playbook myplaybook.yml --tags=mysql,nginx               #Controlling Playbook Execution
+ansible-playbook myplaybook.yml --skip-tags=mysql             
+
+ansible-vault create credentials.yml              #create a new encrypted Ansible
+ansible-vault encrypt credentials.yml             #Encrypting an Existing Ansible File
+ansible-vault view credentials.yml                #Viewing the Contents of an Encrypted File
+ansible-vault edit credentials.yml                #Editing an Encrypted File
+ansible-vault decrypt credentials.yml             #Decrypting Encrypted Files
+
+
+##Using Multiple Vault Passwords##
+
+ansible-vault create --vault-id dev@prompt credentials_dev.yml 
+ansible-vault create --vault-id prod@prompt credentials_prod.yml   #create a new encrypted file using a custom vault ID, This will create a new vault ID named dev that uses prompt as password source. 
+																   #By combining this method with group variable files, you’ll be able to have separate ansible vaults for each application environment
+ansible-vault edit credentials_dev.yml --vault-id dev@prompt
+
+
+ansible-vault create --vault-id dev@path/to/passfile credentials_dev.yml   #Using a Password File
+
+
+##Running a Playbook with Data Encrypted via Ansible Vault##
+
+ansible-playbook myplaybook.yml --ask-vault-pass
+ansible-playbook myplaybook.yml --vault-password-file my_vault_password.py
+ansible-playbook myplaybook.yml --vault-id dev@prompt
+ansible-playbook myplaybook.yml --vault-id dev@vault_password.py
+ansible-playbook myplaybook.yml --vault-id dev@vault_password.py --vault-id test@prompt --vault-id ci@prompt
+
+
+####Debugging#####
+
+ansible-playbook myplaybook.yml -v             #-vvv and this will increase verbosity of the output
+ansible-playbook myplaybook.yml -vvvv          #to get connection debugging information:
+
+
+Hosts File:
+
+host ansible_ssh_private_key_file=/path/to/your/.ssh/file.pub
+192.168.2.200 ansible_ssh_private_key_file=/path/to/your/.ssh/id_rsa.pub
+104.20.187.5 ansible_ssh_private_key_file=/path/to/your/.ssh/aws.pem
+
+ansible-playbook main.yml ansible_ssh_user=ansible ansible_ssh_private_key_file=~/ansible.pem
+
+
+
+include_tasks is used to include tasks from a file or list of files relative to the playbook or the current task file.
+        it is processed at run time and can use in loops. 
+				tags willnot be listed with --list-tags
+import_tasks is used to import tasks from a file or list of files relative to a specific location in a playbook. 
+       It can also be used to include tasks from a role or another playbook.
+			 it is static processing and can not use in loops.  all tags appear with --list-tags
+
+roles/
+	tomcat/
+		tasks/
+		handlers/
+		templates/
+		files/
+		vars/
+		defaults/
+		meta/
+		library/
+		module_utils/
+		lookup_plugins/
+	main.yaml
+	group_vars
+
+
+Roles/Paybook/Play    
+Understanding privilege escalation: become
+	The become keyword uses existing privilege escalation tools like sudo, su, pfexec, doas, pbrun, dzdo, ksu, runas, machinectl and others.
+
+Selecting a strategy: linear | debug | free
+
+handlers
+yum | copy | file | get_url | systemd | servcie | unarchive |when |notify |register | debug | shell | command | user 
+git | template | ping | docker_container | docker_image | ec2 | lineinfile | blockinfile | cron | replace| fetch| authorized_keys|
+set_fact| 
+import_roles | import_tasks | include_roles | include_tasks | Block | rescue | always | failed_when | changed_when 
+when | with_items | loops |until| looup | tags  | max_fail_percentage | stat 
+serial | throttle |run_once | order ( inventory | reverse_inventory |sorted |reverse_sorted|shuffle)
+check | diff |
+start-at-task | step
+vars_prompts | pre_tasks | post_tasks
+vars_prompt:
+
+    - name: username
+      prompt: What is your username?
+      private: false
+
+    - name: password
+      prompt: What is your password?
+
+  tasks:
+
+    - name: Print a message
+      ansible.builtin.debug:
+        msg: 'Logging in as {{ username }}'
+
+
+CD:
+
+roles
+hosts
+provision.yml
+rolling_update.yml
+site.yml
+
+Handlers: In Ansible, handlers are tasks that are triggered when notified by other tasks in a playbook. 
+			Handlers are usually used to restart services or perform certain actions after specific changes have been made on a system.
+
+Example:
+---
+- name: Install Nginx and copy configuration file
+  hosts: webserver
+  become: yes
+
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Copy Nginx configuration file
+      copy:
+        src: /path/to/local/nginx.conf
+        dest: /etc/nginx/nginx.conf
+      notify: Restart Nginx
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+
+
+register and debug:
+	- name: Run a command and register the output
+	  command: ls /tmp
+	  register: command_output
+
+	- name: Print the output
+	  debug:
+		var: command_output.stdout_lines
+
+when:
+	- name: Create a directory if it doesn't exist
+      file:
+        path: /data/logs
+        state: directory
+      when: not ansible_facts['file_exists']
+
+template:
+    - name: Copy Nginx configuration file
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+
+
+lineinfile:
+	- name: Add a line to the hosts file
+      lineinfile:
+        path: /etc/hosts
+        line: "192.168.1.100   server.example.com"
+
+blockinfile:
+    - name: Add a block of configuration to the Nginx site file
+      blockinfile:
+        path: /etc/nginx/sites-available/my-site.conf
+        block: |
+        server {
+          listen 80;
+          server_name mysite.com;
+          location / {
+            root /var/www/mysite;
+            index index.html;
+          }
+        }
+
+
+serial: The serial keyword is used to control the batch size (no of hosts) when running tasks on multiple hosts in parallel. 
+		It allows you to execute tasks on hosts serially, which can be helpful when dealing with a large number of hosts
+
+	- name: Install and configure package
+		hosts: mygroup
+		serial: 2
+		tasks:
+		- name: Install package
+			package:
+				name: mypackage
+				state: present
+
+throttle: The throttle keyword is used to limit the rate at which tasks are executed. It allows you to control how many tasks are running simultaneously across all hosts.
+	- name: Update configuration
+	  hosts: mygroup
+	  throttle: 1
+	  tasks:
+	   - name: task1
+
+run_once:	The run_once keyword ensures that a task is executed only once, regardless of the number of hosts in the play.
+	- name: Initialize database
+	  hosts: mygroup
+	  tasks:
+		- name: Run database initialization script
+		  script: init_db.sh
+		  run_once: true
+
+check:  The check keyword allows you to run a playbook in "check mode," where Ansible performs a "dry run" without making any changes to the target systems. 
+		This is useful for testing and verifying the effects of a playbook.
+- name: Check changes
+  hosts: mygroup
+  tasks:
+    - name: Ensure package is installed
+      package:
+        name: mypackage
+        state: present
+      check_mode: yes
+
+rescue and always: Try cath finally
+		The rescue keyword defines a set of tasks to be executed when a play fails. The always keyword defines a set of tasks to be executed regardless of whether the play succeeds or fails.
+
+- name: Handle errors and cleanup
+  hosts: mygroup
+  tasks:
+    - name: Attempt task 1
+      command: task1.sh
+    - name: Attempt task 2
+      command: task2.sh
+  rescue:
+    - name: Notify failure
+      mail:
+        to: admin@example.com
+        subject: "Playbook failed on {{ inventory_hostname }}"
+        body: "The playbook failed on {{ inventory_hostname }}"
+  always:
+    - name: Cleanup temp files
+      file:
+        path: /tmp/temp_file
+        state: absent
+
+block and step:
+		The block keyword is used to group tasks together into a block. The step keyword is used to specify the number of tasks executed simultaneously within the block.
+
+- name: Deploy application
+  hosts: mygroup
+  tasks:
+    - name: Stop application service
+      service:
+        name: myapp
+        state: stopped
+
+    - name: Deploy new code
+      block:
+        - name: Copy new code files
+          copy:
+            src: /path/to/new_code
+            dest: /opt/myapp
+
+        - name: Apply configuration changes
+          template:
+            src: config_template.j2
+            dest: /etc/myapp/config.conf
+      become: yes
+      step: 2
+
+    - name: Start application service
+      service:
+        name: myapp
+        state: started
+
+Conditons and loops:
+
+	- name: Install package if the OS is CentOS
+	  package:
+		name: mypackage
+		state: present
+	  when: ansible_distribution == 'CentOS'
+	
+	- name: Create users
+      user:
+        name: "{{ item }}"
+        state: present
+    with_items:
+      - user1
+      - user2
+      - user3
+
+	- name: Create users
+	  user:
+		name: "{{ item }}"
+		state: present
+	  loop:
+		- user1
+		- user2
+		- user3
+    
+	- name: Create users
+	  user:
+		name: "{{ item.key }}"
+		state: present
+	  with_dict:
+		user1:
+		  uid: 1001
+		  shell: /bin/bash
+		user2:
+		  uid: 1002
+		  shell: /bin/zsh
+
+
+
+Do While Loop using a Custom Jinja2 Filter:
+Suppose you want to execute a task repeatedly until a condition is met. You can create a custom Jinja2 filter that performs the required logic and use it in a loop.
+First, create a custom filter plugin. Save it as my_filters.py in a directory called filter_plugins relative to your playbook
+
+# filter_plugins/my_filters.py
+
+def do_while(value, condition):
+    result = []
+    while condition(value):
+        result.append(value)
+        value = value + 1
+    return result
+
+class FilterModule(object):
+    def filters(self):
+        return {
+            'do_while': do_while,
+        }
+
+- name: Perform an action until a condition is met
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Generate numbers from 1 to 10
+      debug:
+        msg: "{{ item }}"
+      with_items: "{{ 1 | do_while( lambda x: x <= 10 ) }}"
+
+
+By using until, retries, delay, and failed_when together, you can create a loop that effectively implements "loop until" behavior in Ansible.
+
+- name: Wait for the service to be running
+  hosts: my_host
+  gather_facts: yes
+
+  tasks:
+    - name: Gather service facts
+      service_facts:
+        filters: name=my_service
+      register: service_facts_result
+
+    - name: Check service status
+      debug:
+        var: service_facts_result.ansible_facts.services['my_service'].state
+      until: service_facts_result.ansible_facts.services['my_service'].state == 'running'
+      retries: 10
+      delay: 5
+      failed_when: false
+
+
+
+---
+- name: Gather Memory and Disk Utilization
+  hosts: your_server_group
+  gather_facts: yes
+
+  tasks:
+    - name: Get Memory Information
+      ansible.builtin.shell: free -h
+      register: memory_result
+
+    - name: Display Memory Information
+      debug:
+        var: memory_result.stdout_lines
+
+    - name: Get Disk Utilization
+      ansible.builtin.shell: df -h
+      register: disk_result
+
+    - name: Display Disk Utilization
+      debug:
+        var: disk_result.stdout_lines
+
+
+---
+- name: Check System Utilization and Send Email
+  hosts: your_server_group
+  gather_facts: yes
+
+  tasks:
+    - name: Get Memory Information
+      ansible.builtin.shell: free -m | grep Mem | awk '{print $3/$2 * 100}'
+      register: memory_utilization
+
+    - name: Get Disk Utilization
+      ansible.builtin.shell: df -h | grep '/dev/' | awk '{gsub("%","",$5); print $5}'
+      register: disk_utilization
+
+    - name: Get CPU Utilization
+      ansible.builtin.shell: vmstat | awk 'NR==3{print 100-$15}'
+      register: cpu_utilization
+
+    - name: Send Email if Utilization is High
+      ansible.builtin.mail:
+        host: smtp.example.com
+        port: 25
+        to: your_email@example.com
+        subject: "Server Utilization Alert"
+        body: |
+          Memory Utilization: {{ memory_utilization.stdout }}%
+          Disk Utilization: {{ disk_utilization.stdout }}
+          CPU Utilization: {{ cpu_utilization.stdout }}%
+        when: memory_utilization.stdout | float > 75 or disk_utilization.stdout | int > 75 or cpu_utilization.stdout | float > 75
